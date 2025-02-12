@@ -1,28 +1,40 @@
-#!/usr/bin/python3
-"""Prime game module.
-"""
+#!/usr/bin/node
 
+const request = require('request');
 
-def isWinner(x, nums):
-    """Determines the winner of a prime game session with `x` rounds.
-    """
-    if x < 1 or not nums:
-        return None
-    marias_wins, bens_wins = 0, 0
-    # generate primes with a limit of the maximum number in nums
-    n = max(nums)
-    primes = [True for _ in range(1, n + 1, 1)]
-    primes[0] = False
-    for i, is_prime in enumerate(primes, 1):
-        if i == 1 or not is_prime:
-            continue
-        for j in range(i + i, n + 1, i):
-            primes[j - 1] = False
-    # filter the number of primes less than n in nums for each round
-    for _, n in zip(range(x), nums):
-        primes_count = len(list(filter(lambda x: x, primes[0: n])))
-        bens_wins += primes_count % 2 == 0
-        marias_wins += primes_count % 2 == 1
-    if marias_wins == bens_wins:
-        return None
-    return 'Maria' if marias_wins > bens_wins else 'Ben'
+if (process.argv.length !== 3) {
+        console.error('Usage: ./0-starwars_characters.js <Movie_ID>');
+        process.exit(1);
+        }
+
+const movieId = process.argv[2];
+const url = `https://swapi.dev/api/films/${movieId}/`;
+
+request(url, (error, response, body) => {
+    if (error) {
+        console.error(error);
+        process.exit(1);
+        }
+
+    if (response.statusCode !== 200) {
+        console.error(`Request failed with status code ${response.statusCode}`);
+        process.exit(1);
+        }
+
+    const filmData = JSON.parse(body);
+    const characters = filmData.characters;
+
+    for (const characterUrl of characters) {
+        request(characterUrl, (charError, charResponse, charBody) => {
+            if (charError) {
+                console.error(charError);
+                return;
+                }
+
+            if (charResponse.statusCode === 200) {
+                const character = JSON.parse(charBody);
+                console.log(character.name);
+                }
+            });
+        }
+    });
